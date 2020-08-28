@@ -45,17 +45,17 @@ async function mainMenu() {
             name: "View All Employees By Department",
             value: "VIEW_EMPLOYEES_BY_DEPARTMENT"
           },
+          // {
+          //   name: "View All Employees By Manager",
+          //   value: "VIEW_EMPLOYEES_BY_MANAGER"
+          // },
           {
-            name: "View All Employees By Manager",
-            value: "VIEW_EMPLOYEES_BY_MANAGER"
+            name: "View All Departments",
+            value: "VIEW_DEPARTMENTS"
           },
           {
-            name: "Add Employee",
-            value: "ADD_EMPLOYEE"
-          },
-          {
-            name: "Remove Employee",
-            value: "REMOVE_EMPLOYEE"
+            name: "View All Roles",
+            value: "VIEW_ROLES"
           },
           {
             name: "Update Employee Role",
@@ -66,24 +66,25 @@ async function mainMenu() {
             value: "UPDATE_EMPLOYEE_MANAGER"
           },
           {
-            name: "View All Roles",
-            value: "VIEW_ROLES"
+            name: "Add Department",
+            value: "ADD_DEPARTMENT"
           },
+
           {
             name: "Add Role",
             value: "ADD_ROLE"
           },
           {
+            name: "Add Employee",
+            value: "ADD_EMPLOYEE"
+          },
+          {
+            name: "Remove Employee",
+            value: "REMOVE_EMPLOYEE"
+          },
+          {
             name: "Remove Role",
             value: "REMOVE_ROLE"
-          },
-          {
-            name: "View All Departments",
-            value: "VIEW_DEPARTMENTS"
-          },
-          {
-            name: "Add Department",
-            value: "ADD_DEPARTMENT"
           },
           {
             name: "Remove Department",
@@ -132,40 +133,45 @@ async function mainMenu() {
     console.log(err)
   }
 }
+// query variable used to access all departments
+const viewDepartmentQuery = "SELECT department.id, department.department_name, SUM(role.salary) AS department_total_budget FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.department_name;"
+
+// query variable used to access all employees
+const viewEmployeesQuery = "SELECT employee.id AS Employee_ID, employee.first_name, employee.last_name, role.role_title AS Role, department.department_name AS Department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;"
+
+
+// function to view all employees
 async function viewEmployees() {
-  var query = "SELECT employee.id, employee.first_name, employee.last_name, role.role_title, department.department_name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;";
-  const result = await promiseQuery(query) // use in async function
+  const result = await promiseQuery(viewEmployeesQuery) // use in async function
+  console.log("\n");
   console.table(result);
   mainMenu();
 }
 
-
-// all departments except 
+// Prompts department choices and pulls employees based on department  
 async function viewEmployeesByDepartment() {
-  var query = "SELECT department.id, department.department_name, SUM(role.salary) AS department_total_budget FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.department_name;";
-  const result = await promiseQuery(query) // use in async function
+  const result = await promiseQuery(viewDepartmentQuery) // use in async function
   // console.table(result);
 
-  const departmentChoices = result.map(({ id, name }) => ({
-    name: name,
-    value: id
+  const departmentChoices = result.map((deptOptions) => ({
+    name: deptOptions.department_name,
+    value: deptOptions.id
   }));
 
-  const { departmentId } = await prompt([
+  const { departmentId } = await inquirer.prompt([
     {
       type: "list",
       name: "departmentId",
-      message: "Which department would you like to see employees for?",
+      message: "Please pick a department:",
       choices: departmentChoices
     }
   ]);
+  // query to find employees by department
+  var queryRoleId = "SELECT employee.id AS Employee_ID, employee.first_name, employee.last_name, role.role_title FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id WHERE department.id =" + departmentId + ";"
 
-  const employees = await db.findAllEmployeesByDepartment(departmentId);
-
+  const result_role_id = await promiseQuery(queryRoleId) // use in async function
   console.log("\n");
-  console.table(employees);
-
-
+  console.table(result_role_id);
 
   mainMenu();
 };
@@ -176,6 +182,61 @@ async function viewEmployeesByDepartment() {
 //   console.table(result);
 //   mainMenu();
 // };
+
+async function viewDepartments() {
+  const result = await promiseQuery(viewDepartmentQuery) // use in async function
+  console.log("\n");
+  console.table(result);
+  mainMenu();
+};
+
+async function viewRoles() {
+  var queryRoleId = "SELECT role.role_title AS Department_Roles, department.department_name  FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id;"
+  // WHERE department.id = " + departmentId + "; "
+  const result_dept_roles = await promiseQuery(queryRoleId) // use in async function
+  console.log("\n");
+  console.table(result_dept_roles);
+  mainMenu();
+};
+
+async function updateEmployeeRole() {
+  const result = await promiseQuery(viewEmployeesQuery)// use in async function
+  console.table(result);
+  console.log(result.id);
+  // const employeeChoices = result.map(({ id, first_name, last_name }) => ({
+  //   name: `${first_name} ${last_name} ${employee.id}`,
+  //   value: id
+  // }));
+
+  // console.log(employeeChoices);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// async updateEmployeeManager(){
+//   var query =
+//   const result = await promiseQuery(query) // use in async function
+//   console.table(result);
+//   mainMenu();
+// };
+
 
 // async addEmployee(){
 //   var query =
@@ -191,27 +252,6 @@ async function viewEmployeesByDepartment() {
 //   mainMenu();
 // };
 
-// async updateEmployeeRole(){
-//   var query =
-//   const result = await promiseQuery(query) // use in async function
-//   console.table(result);
-//   mainMenu();
-// };
-
-// async updateEmployeeManager(){
-//   var query =
-//   const result = await promiseQuery(query) // use in async function
-//   console.table(result);
-//   mainMenu();
-// };
-
-// async viewDepartments(){
-//   var query =
-//   const result = await promiseQuery(query) // use in async function
-//   console.table(result);
-//   mainMenu();
-// };
-
 // async addDepartment(){
 //   var query =
 //   const result = await promiseQuery(query) // use in async function
@@ -220,13 +260,6 @@ async function viewEmployeesByDepartment() {
 // };
 
 // async removeDepartment(){
-//   var query =
-//   const result = await promiseQuery(query) // use in async function
-//   console.table(result);
-//   mainMenu();
-// };
-
-// async viewRoles(){
 //   var query =
 //   const result = await promiseQuery(query) // use in async function
 //   console.table(result);
