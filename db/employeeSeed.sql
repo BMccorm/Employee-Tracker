@@ -56,32 +56,34 @@ VALUES
 INSERT INTO employee
     (first_name,last_name,role_id, manager_id)
 VALUES
-    ("John", "Doe", 1, Null),
-    -- HR Coordinator
     ("Pat", "Smith", 2, Null),
     -- HR Manager
-    ("Lauren", "Brown", 3, Null),
-    -- Junior Developer
+    ("John", "Doe", 1, 1),
+    -- HR Coordinator
     ("Tim", "Cox", 4, Null),
     -- Senior Developer
-    ("Tom", "Ng", 5, Null),
-    -- Marketing Coordinator
+    ("Lauren", "Brown", 3, 3),
+    -- Junior Developer
     ("Alex", "Bahr", 6, Null),
     -- Marketing Lead
-    ("Jess", "Simone", 7, Null),
-    -- Paralegal
+    ("Tom", "Ng", 5, 5),
+    -- Marketing Coordinator
     ("Bob", "McGregor", 8, Null),
     -- Lawyer
-    ("Erica", "DiMelio", 9, Null),
-    -- Finance Analyst
+    ("Jess", "Simone", 7, 7),
+    -- Paralegal
     ("Alaina", "Swift", 10, Null),
     -- Finance VP
-    ("Taylor", "Perry", 11, Null),
-    -- Associate Designer
+    ("Erica", "DiMelio", 9, 9),
+    -- Finance Analyst
     ("Katy", "Knowles", 12, Null),
     -- Design Director
-    ("Ryan", "Phelps", 13, Null),
+    ("Taylor", "Perry", 11, 11),
+    -- Associate Designer
+    ("Cora", "Chan", 14, Null),
+    -- Sales Lead
+    ("Ryan", "Phelps", 13, 13);
     -- Sales Assistant
-    ("Cora", "Chan", 14, Null); -- Sales Lead
+   
 
     
