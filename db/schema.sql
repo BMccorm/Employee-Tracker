@@ -12,7 +12,7 @@ CREATE TABLE department
 (
   id INT
   AUTO_INCREMENT PRIMARY KEY,
-  -- INT PRIMARY KEY
+  -- INT PRIMARY KEY, unsigned only allows positive numbers
   department_name VARCHAR
   (30) NOT NULL
   -- to hold department name
@@ -30,7 +30,8 @@ CREATE TABLE department
   department_id INTEGER,
   FOREIGN KEY
     (department_id) REFERENCES department
-    (id)
+    (id) ON
+    DELETE CASCADE
   -- holds reference to department id (department name) and deletes the corresponding records if parent is
 );
 
@@ -49,7 +50,9 @@ CREATE TABLE department
       (id),
   FOREIGN KEY
       (manager_id) REFERENCES employee
-      (id)
+      (id) ON
+      DELETE
+      SET NULL
       );
 
 

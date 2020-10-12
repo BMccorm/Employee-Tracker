@@ -104,52 +104,121 @@ async function viewEmployees() {
 }
 
 async function viewEmployeesByDepartment() {
-    const departments = await db.findAllDepartments();
+    try {
+        const departments = await db.findAllDepartments();
 
-    const departmentChoices = departments.map(({ id, name }) => ({
-        name: name,
-        value: id
-    }));
+        const departmentChoices = departments.map(({ department_name, name }) => ({
+            name: name,
+            value: department_name
+        }));
 
-    const { departmentId } = await prompt([
-        {
+        const { departmentId } = await prompt([
+            {
+                type: "list",
+                name: "departmentId",
+                message: "Which department would you like to see employees for?",
+                choices: departmentChoices
+            }
+        ]);
+
+        const employees = await db.findAllEmployeesByDepartment(departmentId);
+
+        console.log("\n");
+        console.table(employees);
+
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+async function addEmployee() {
+    try {
+        const roles = await db.findAllRoles();
+        const employees = await db.findAllEmployees();
+
+        const employee = await prompt([
+            {
+                name: "first_name",
+                message: "What is the employee's first name?"
+            },
+            {
+                name: "last_name",
+                message: "What is the employee's last name?"
+            }
+        ]);
+
+        const roleChoices = roles.map(({ id, role_title }) => ({
+            name: role_title,
+            value: id
+        }));
+
+        const { roleId } = await prompt({
             type: "list",
-            name: "departmentId",
-            message: "Which department would you like to see employees for?",
-            choices: departmentChoices
-        }
-    ]);
+            name: "roleId",
+            message: "What is the employee's role?",
+            choices: roleChoices
+        });
 
-    const employees = await db.findAllEmployeesByDepartment(departmentId);
+        // const roleTitle = await db.findRoleID(roleId)
+        //    turns the resonse a RowDataPacket, into a string and parses it. the [0] accesses the constructor.Once inside, the id can be returned
+        employee.role_id = roleId
 
-    console.log("\n");
-    console.table(employees);
+        const managerChoices = employees.map(({ id, first_name, last_name }) => ({
+            name: `${first_name} ${last_name}`,
+            value: id
+        }));
+        managerChoices.unshift({ name: "None", value: null });
 
-    mainMenu();
+        const { managerId } = await prompt({
+            type: "list",
+            name: "managerId",
+            message: "Who is the employee's manager?",
+            choices: managerChoices
+        });
+
+        employee.manager_id = managerId;
+
+        await db.createEmployee(employee);
+
+        console.log(
+            `Added ${employee.first_name} ${employee.last_name} to the database`
+        );
+
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 async function removeEmployee() {
-    const employees = await db.findAllEmployees();
+    try {
+        const employees = await db.findAllEmployees();
 
-    const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
-        name: `${first_name} ${last_name}`,
-        value: id
-    }));
+        const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
+            name: `${first_name} ${last_name}`,
+            value: id
+        })
+        );
 
-    const { employeeId } = await prompt([
-        {
-            type: "list",
-            name: "employeeId",
-            message: "Which employee do you want to remove?",
-            choices: employeeChoices
-        }
-    ]);
+        const { employeeId } = await prompt([
+            {
+                type: "list",
+                name: "employeeId",
+                message: "Which employee do you want to remove?",
+                choices: employeeChoices
+            }
+        ]);
 
-    await db.removeEmployee(employeeId);
+        await db.removeEmployee(employeeId);
 
-    console.log("Removed employee from the database");
+        console.log(`Thank you, ${employee.first_name} has been removed from the database`);
 
-    mainMenu();
+        mainMenu();
+    } catch (error) {
+        console.log("Error, you are trying to delete a manager. This requires additional approval")
+        mainMenu();
+    }
 }
 
 async function updateEmployeeRole() {
@@ -171,8 +240,8 @@ async function updateEmployeeRole() {
 
     const roles = await db.findAllRoles();
 
-    const roleChoices = roles.map(({ id, title }) => ({
-        name: title,
+    const roleChoices = roles.map(({ id, role_title }) => ({
+        name: role_title,
         value: id
     }));
 
@@ -180,7 +249,7 @@ async function updateEmployeeRole() {
         {
             type: "list",
             name: "roleId",
-            message: "Which role do you want to assign the selected employee?",
+            message: "Please select the employee's new role?",
             choices: roleChoices
         }
     ]);
@@ -202,161 +271,133 @@ async function viewRoles() {
 }
 
 async function addRole() {
-    const departments = await db.findAllDepartments();
+    try {
+        const departments = await db.findAllDepartments();
 
-    const departmentChoices = departments.map(({ id, name }) => ({
-        name: name,
-        value: id
-    }));
+        const departmentChoices = departments.map(({ id, department_name }) => ({
+            name: department_name,
+            value: id
+        }));
 
-    const role = await prompt([
-        {
-            name: "title",
-            message: "What is the name of the role?"
-        },
-        {
-            name: "salary",
-            message: "What is the salary of the role?"
-        },
-        {
-            type: "list",
-            name: "department_id",
-            message: "Which department does the role belong to?",
-            choices: departmentChoices
-        }
-    ]);
+        const role = await prompt([
+            {
+                name: "role_title",
+                message: "What is the name of the role?"
+            },
+            {
+                name: "salary",
+                message: "What is the salary of the role. Please do not include commas?"
+            },
+            {
+                type: "list",
+                name: "department_id",
+                message: "Which department does the role belong to?",
+                choices: departmentChoices
+            }
+        ]);
 
-    await db.createRole(role);
+        await db.createRole(role);
 
-    console.log(`Added ${role.title} to the database`);
+        console.log(`Added ${role.role_title} to the database`);
 
-    mainMenu();
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 async function removeRole() {
-    const roles = await db.findAllRoles();
+    try {
+        const roles = await db.findAllRoles();
 
-    const roleChoices = roles.map(({ id, title }) => ({
-        name: title,
-        value: id
-    }));
+        const roleChoices = roles.map(({ id, role_title }) => ({
+            name: role_title,
+            value: id
+        }));
 
-    const { roleId } = await prompt([
-        {
-            type: "list",
-            name: "roleId",
-            message:
-                "Which role do you want to remove? (Warning: This will also remove employees)",
-            choices: roleChoices
-        }
-    ]);
+        const { roleId } = await prompt([
+            {
+                type: "list",
+                name: "roleId",
+                message:
+                    "Which role do you want to remove? (Please note this will also remove employees)",
+                choices: roleChoices
+            }
+        ]);
 
-    await db.removeRole(roleId);
+        await db.removeRole(roleId);
 
-    console.log("Removed role from the database");
+        console.log("Removed role from the database");
 
-    mainMenu();
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+        mainMenu();
+    }
 }
 
 async function viewDepartments() {
-    const departments = await db.findAllDepartments();
+    try {
+        const departments = await db.findAllDepartments();
 
-    console.log("\n");
-    console.table(departments);
+        console.log("\n");
+        console.table(departments);
 
-    mainMenu();
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+        mainMenu();
+    }
 }
 
 async function addDepartment() {
-    const department = await prompt([
-        {
-            name: "name",
-            message: "What is the name of the department?"
-        }
-    ]);
+    try {
+        const department = await prompt([
+            {
+                name: "department_name",
+                message: "What is the name of the department?"
+            }
+        ]);
 
-    await db.createDepartment(department);
+        await db.createDepartment(department);
 
-    console.log(`Added ${department.name} to the database`);
+        console.log(`Added ${department.department_name} to the database`);
 
-    mainMenu();
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+        mainMenu();
+    }
 }
 
 async function removeDepartment() {
-    const departments = await db.findAllDepartments();
+    try {
+        const departments = await db.findAllDepartments();
 
-    const departmentChoices = departments.map(({ id, name }) => ({
-        name: name,
-        value: id
-    }));
+        const departmentChoices = departments.map(({ id, department_name }) => ({
+            name: department_name,
+            value: id
+        }));
 
-    const { departmentId } = await prompt({
-        type: "list",
-        name: "departmentId",
-        message:
-            "Which department would you like to remove? (Warning: This will also remove associated roles and employees)",
-        choices: departmentChoices
-    });
+        const { departmentId } = await prompt({
+            type: "list",
+            name: "departmentId",
+            message:
+                "Which department would you like to remove? (Warning: This will also remove associated roles and employees)",
+            choices: departmentChoices
+        });
 
-    await db.removeDepartment(departmentId);
+        await db.removeDepartment(departmentId);
 
-    console.log(`Removed department from the database`);
+        console.log(`Removed department from the database`);
 
-    mainMenu();
+        mainMenu();
+    } catch (error) {
+        console.log(error)
+    }
 }
 
-async function addEmployee() {
-    const roles = await db.findAllRoles();
-    const employees = await db.findAllEmployees();
 
-    const employee = await prompt([
-        {
-            name: "first_name",
-            message: "What is the employee's first name?"
-        },
-        {
-            name: "last_name",
-            message: "What is the employee's last name?"
-        }
-    ]);
-
-    const roleChoices = roles.map(({ id, title }) => ({
-        name: title,
-        value: id
-    }));
-
-    const { roleId } = await prompt({
-        type: "list",
-        name: "roleId",
-        message: "What is the employee's role?",
-        choices: roleChoices
-    });
-
-    employee.role_id = roleId;
-
-    const managerChoices = employees.map(({ id, first_name, last_name }) => ({
-        name: `${first_name} ${last_name}`,
-        value: id
-    }));
-    managerChoices.unshift({ name: "None", value: null });
-
-    const { managerId } = await prompt({
-        type: "list",
-        name: "managerId",
-        message: "Who is the employee's manager?",
-        choices: managerChoices
-    });
-
-    employee.manager_id = managerId;
-
-    await db.createEmployee(employee);
-
-    console.log(
-        `Added ${employee.first_name} ${employee.last_name} to the database`
-    );
-
-    mainMenu();
-}
 
 function quit() {
     console.log("Thanks!");
