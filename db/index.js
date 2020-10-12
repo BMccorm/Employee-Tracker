@@ -12,10 +12,12 @@ class database {
     );
   }
 
+  // "SELECT department.id, department.department_name, SUM(role.salary) AS department_total_budget FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.department_name;
+
   // Find all departments -works
   findAllDepartments() {
     return this.connection.query(
-      "SELECT department.id, department.department_name, SUM(role.salary) AS department_total_budget FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.department_name;"
+      "SELECT department.id, department.department_name FROM department"
     );
   }
 
@@ -74,7 +76,7 @@ class database {
 
   // Create a new department
   createDepartment(department) {
-    return this.connection.query("INSERT INTO department SET department_name=?", department);
+    return this.connection.query("INSERT INTO department SET ?", department);
   }
 
   // Remove a department

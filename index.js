@@ -212,11 +212,11 @@ async function removeEmployee() {
 
         await db.removeEmployee(employeeId);
 
-        console.log(`Thank you, ${employee.first_name} has been removed from the database`);
+        console.log(`Thank you, this employee has been removed from the database.`);
 
         mainMenu();
     } catch (error) {
-        console.log("Error, you are trying to delete a manager. This requires additional approval")
+        console.log(error)
         mainMenu();
     }
 }
