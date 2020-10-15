@@ -25,7 +25,8 @@ This employee management system allows employers to track, update and view depar
 Download this repository and open in terminal.
 
 ## Usage
-Once, the project is installed, enter "node index.js" to start the app. There, you can pick from a variety of tasks.
+Once, the project is installed, enter "node index.js" to start the app. There, you can pick from a variety of tasks. <br> <br>
+![demo_gif](./assets/demo_gif.gif)
 
 ## Interested in contributing? Here's how:
 
